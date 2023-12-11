@@ -4,7 +4,7 @@ const db = require('../config/db');
 
 router.get('/', async (req, res) => {
     try{
-        db.query(
+        await db.query(
             'SELECT * FROM products',
             async(err, results) => {
                 if(err){
