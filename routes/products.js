@@ -3,7 +3,6 @@ const router = express.Router();
 const db = require('../config/db');
 
 router.get('/', async (req, res) => {
-    try{
         await db.query(
             'SELECT * FROM products',
             async(err, results) => {
@@ -16,12 +15,6 @@ router.get('/', async (req, res) => {
                 }
             }
         );    
-    }
-    catch(error){
-        console.error(error);
-        res.status(500).send();
-    }
-    
 });
 
 router.get('/:productId', async (req, res) => {
