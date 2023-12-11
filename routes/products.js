@@ -3,6 +3,7 @@ const router = express.Router();
 const db = require('../config/db');
 
 router.get('/', async (req, res) => {
+<<<<<<< HEAD
     try{
         const response = await db.query('SELECT * FROM products');
         if(response.status === 200){
@@ -14,6 +15,19 @@ router.get('/', async (req, res) => {
         console.error(err);
         res.status(500).send({message: "Error"});
     }
+=======
+        try{
+                const response = await db.query('SELECT * FROM products');
+                if(response.status === 200){
+                        const data = await response.json();
+                        res.status(200).send(data);
+                }
+        }
+        catch(err){
+                console.error(err);
+                res.status(500).send({message: "Error"});
+        }
+>>>>>>> 6bcabebf0264d10cd4ae18c030029d18467eb800
 });
 
 router.get('/:productId', async (req, res) => {
