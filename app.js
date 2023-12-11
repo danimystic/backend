@@ -4,6 +4,7 @@ const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const session = require('express-session');
+const RedisStore = require('connect-redis')(session);
 const db = require('./config/db');
 const cors = require('cors');
 const cloudinary = require('./config/cloudinary');
@@ -30,18 +31,19 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(cors({
-  origin: 'http://localhost:9000',
+  origin: '*',
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   credentials: true,
   optionsSuccessStatus: 204,
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 app.use(session({
+  store: RedisStore(options),
   secret: 'secret',
   saveUninitialized: true,
   resave: false,
   cookie: {
-    secure: false,
+    secure: true,
     maxAge: 1000 * 60 * 60 * 24 * 7
   }
 }));

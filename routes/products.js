@@ -4,24 +4,16 @@ const db = require('../config/db');
 
 router.get('/', async (req, res) => {
     try{
-        db.query(
-            'SELECT * FROM products',
-            async(err, results) => {
-                if(err){
-                    console.error(err);
-                    res.status(500).send();
-                }
-                else{
-                    res.status(200).send(results);
-                }
-            }
-        );    
+        const response = await db.query('SELECT * FROM products');
+        if(response.status === 200){
+            const data = await response.json();
+            res.status(200).send(data);
+        }
     }
-    catch(error){
-        console.error(error);
-        res.status(500).send();
+    catch(err){
+        console.error(err);
+        res.status(500).send({message: "Error"});
     }
-    
 });
 
 router.get('/:productId', async (req, res) => {
