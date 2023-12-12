@@ -3,76 +3,36 @@ const router = express.Router();
 const db = require('../config/db');
 
 router.get('/', async (req, res) => {
-<<<<<<< HEAD
-    try{
-        const response = await db.query('SELECT * FROM products');
-        if(response.status === 200){
-            const data = await response.json();
-            res.status(200).send(data);
-        }
+    try {
+        const data = await db.query('SELECT * FROM products');
+        res.status(200).send(data[0]);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send({message: "Internal Error"});
     }
-    catch(err){
-        console.error(err);
-        res.status(500).send({message: "Error"});
-    }
-=======
-        try{
-                const response = await db.query('SELECT * FROM products');
-                if(response.status === 200){
-                        const data = await response.json();
-                        res.status(200).send(data);
-                }
-        }
-        catch(err){
-                console.error(err);
-                res.status(500).send({message: "Error"});
-        }
->>>>>>> 6bcabebf0264d10cd4ae18c030029d18467eb800
 });
 
 router.get('/:productId', async (req, res) => {
     const productId = req.params.productId;
     try{
-        db.query(
-            'SELECT * FROM products WHERE productId = ?',
-            [productId],
-            async(err, results) => {
-                if(err){
-                    console.error(err);
-                    res.status(500).send();
-                }
-                else{
-                    res.status(200).send(results);
-                }
-            }
-        );    
+        const data = await db.query('SELECT * FROM products WHERE productId = ?', [productId]);
+        res.status(200).send(data[0]);
     }
     catch(error){
         console.error(error);
-        res.status(500).send();
+        res.status(500).send({message: "Internal Error"});
     }
 });
 
 router.get('/stock/:productId', async (req, res) => {
     const productId = req.params.productId;
     try {
-        db.query(
-            'SELECT size, stock FROM sizes WHERE productId = ?',
-            [productId],
-            async (error, results) => {
-                if(error){
-                    console.error(error);
-                    res.status(500).send();
-                }
-                else{
-                    res.status(200).send(results);
-                }
-            }
-        );    
+        const data = await db.query('SELECT size, stock FROM sizes WHERE productId = ?', [productId]);
+        res.status(200).send(data[0]);
     } 
     catch (error) {
         console.error(error);
-        res.status(500).send();
+        res.status(500).send({message: "Internal Error"});
     }
 });
 
@@ -85,22 +45,13 @@ router.put('/stock/:productId', async (req, res) => {
         try {
             for(const size in sizes){
                 const stock = sizes[size];
-                db.query(
-                    'UPDATE sizes SET stock = ? WHERE productId = ? AND size = ?',
-                    [stock, productId, size],
-                    async (err, results) => {
-                        if(err){
-                            console.error('Database error:', err);
-                            res.status(500).send();
-                        }
-                    }
-                );
+                await db.query('UPDATE sizes SET stock = ? WHERE productId = ? AND size = ?', [stock, productId, size]);
             }
             res.status(200).send({message: "Stock Modified"});
         }
         catch(error){
             console.error(error);
-            res.status(500).send({message: "Error"});
+            res.status(500).send({message: "Internal Error"});
         }
     }
 });

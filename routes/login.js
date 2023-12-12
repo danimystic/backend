@@ -16,7 +16,7 @@ router.post('/', async (req, res) => {
     const {email, password} = req.body;
 
     try{
-        db.query(
+        await db.query(
             'SELECT * FROM users WHERE email = ?', 
             [email],
             async (err, rows, fields) => {
@@ -46,7 +46,7 @@ router.post('/', async (req, res) => {
     }
     catch(err){
         console.error("Error: " + err);
-        res.status(500);
+        res.status(500).send({message: "Internal Error"});
     }
 });
 

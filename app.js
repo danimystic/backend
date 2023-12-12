@@ -4,7 +4,6 @@ const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const session = require('express-session');
-const RedisStore = require('connect-redis')(session);
 const db = require('./config/db');
 const cors = require('cors');
 const cloudinary = require('./config/cloudinary');
@@ -34,7 +33,6 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 app.use(session({
-  store: RedisStore(options),
   secret: 'secret',
   saveUninitialized: true,
   resave: false,
