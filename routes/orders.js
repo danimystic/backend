@@ -9,47 +9,33 @@ const parser = multer({ storage: storage });
 router.get('/all', async (req, res) => {
     if(req.session.role == "client"){
         try {
-            db.query(
+            const response = await db.query(
                 'SELECT * FROM orders WHERE userId = ? AND orderStatus <> ?',
-                [req.session.userId, 0],
-                async(err, results) => {
-                    if(err){
-                        console.error(err);
-                        res.status(500).send();
-                    }
-                    else{
-                        res.status(200).send(results);
-                    }
-                }
+                [req.session.userId, 0]
             );
+            const data = response[0];
+            res.status(200).send(data);
         } 
         catch(error){
             console.error(error);
-            res.status(500).send();
+            res.status(500).send({message: "Internal Error"});
         }
     }
-})
+});
 
 router.get('/', async (req, res) => {
     if(req.session.role === "client"){
         try {
-            db.query(
+            const response = await db.query(
                 'SELECT * FROM orders WHERE userId = ? AND orderStatus = ?',
-                [req.session.userId, 0],
-                async(err, results) => {
-                    if(err){
-                        console.error(err);
-                        res.status(500);
-                    }
-                    else{
-                        res.status(200).send(results);
-                    }
-                }
+                [req.session.userId, 0]
             );
+            const data = response[0];
+            res.status(200).send(data);
         } 
         catch(error){
             console.error(error);
-            res.status(500);
+            res.status(500).send({message: "Internal Error"});
         }
     }
 });
@@ -57,25 +43,43 @@ router.get('/', async (req, res) => {
 router.get('/:orderId', async (req, res) => {
     const orderId = req.params.orderId;
 
-    if(req.session.username){
+    if(req.session.role === "admin"){
         try {
-            db.query(
+            const response = await db.query(
                 'SELECT * FROM orders WHERE orderId = ?',
-                [orderId],
-                async(err, results) => {
-                    if(err){
-                        console.error(err);
-                        res.status(500);
-                    }
-                    else{
-                        res.status(200).send(results);
-                    }
-                }
+                [orderId]
             );
+            const data = response[0];
+            res.status(200).send(data);
         } 
         catch(error){
             console.error(error);
-            res.status(500);
+            res.status(500).send({message: "Internal Error"});
+        }
+    }
+    else if(req.session.role === "client"){
+        try {
+            const getCheckUser = await db.query(
+                'SELECT orderId FROM orders WHERE orderId = ? AND userId = ?',
+                [orderId, req.session.userId]
+            );
+            const checkUser = getCheckUser[0].orderId;
+
+            if(!checkUser || checkUser.length <= 0 || checkUser === ""){
+                res.status(401).send({message: "Unauthorized Access"});
+                return;
+            }
+
+            const response = await db.query(
+                'SELECT * FROM orders WHERE orderId = ?',
+                [orderId]
+            );
+            const data = response[0];
+            res.status(200).send(data);
+        }
+        catch(error){
+            console.error(error);
+            res.status(500).send({message: "Internal Error"});
         }
     }
 });

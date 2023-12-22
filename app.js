@@ -7,6 +7,9 @@ const session = require('express-session');
 const db = require('./config/db');
 const cors = require('cors');
 const cloudinary = require('./config/cloudinary');
+require('dotenv').config({
+  path: `.env.${process.env.NODE_ENV || 'development'}`,
+});
 
 const home = require('./routes/home');
 const loginRouter = require('./routes/login');
@@ -18,6 +21,9 @@ const productsRouter = require('./routes/products');
 const cartsRouter = require('./routes/carts');
 const ordersRouter = require('./routes/orders');
 
+const BACKEND_URL = process.env.NODE_ENV === 'production' ? process.env.ORIGIN_URL_PROD : process.env.ORIGIN_URL_DEV;
+const FRONTEND_URL = process.env.NODE_ENV === 'production' ? process.env.FRONTEND_URL_PROD : process.env.FRONTEND_URL_DEV;
+
 const app = express();
 
 app.use(logger('dev'));
@@ -26,7 +32,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(cors({
-  origin: '*',
+  origin: [BACKEND_URL, FRONTEND_URL],
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   credentials: true,
   optionsSuccessStatus: 204,
@@ -37,7 +43,7 @@ app.use(session({
   saveUninitialized: true,
   resave: false,
   cookie: {
-    secure: true,
+    secure: (process.env.NODE_ENV === 'production') ? true : false,
     maxAge: 1000 * 60 * 60 * 24 * 7
   }
 }));
