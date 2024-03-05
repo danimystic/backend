@@ -102,19 +102,25 @@ router.post('/', async (req, res) => {
                     'SELECT orderId FROM orders WHERE userId = ? AND orderStatus = ?',
                     [req.session.userId, 0]    
                 );
-                const orderId = getOrderId[0].orderId;
+                // console.log(getOrderId);
+                const orderId = getOrderId[0][0].orderId;
+                // console.log(orderId);
                 
                 const getPrice = await db.query(
-                    'SELECT price FROM product WHERE productId = ?',
+                    'SELECT price FROM products WHERE productId = ?',
                     [productId]
                 );
-                const price = getPrice[0].price;
+                // console.log(getPrice);
+                const price = getPrice[0][0].price;
+                // console.log(price);
 
                 const getSizeId = await db.query(
                     'SELECT sizeId FROM sizes WHERE productId = ? AND size = ?',
                     [productId, size]
                 );
-                const sizeId = getSizeId[0].sizeId;
+                // console.log(getSizeId);
+                const sizeId = getSizeId[0][0].sizeId;
+                // console.log(sizeId);
 
                 await db.query(
                     'INSERT INTO carts(orderId, price, quantity, sizeId) VALUES (?, ?, ?, ?)',
@@ -125,6 +131,8 @@ router.post('/', async (req, res) => {
                     'UPDATE orders SET total = total + ? WHERE orderId = ?',
                     [price, orderId]
                 );
+
+                res.status(201).send({message: "Product Added to Cart"});
             }
         } 
         catch(error){
