@@ -6,10 +6,10 @@ router.get('/', async (req, res) => {
     if(req.session.role === "client"){
         try{
             const response = await db.query(
-                'SELECT products.name, products.gender, products.category, sizes.size, carts.cartId, carts.orderId, carts.sizeId, carts.quantity, carts.price, products.imageUrl FROM carts JOIN orders ON carts.orderId = orders.orderId JOIN sizes ON carts.sizeId = sizes.sizeId JOIN products ON sizes.productId = products.productId WHERE orders.userId = ? AND orders.orderStatus = ?', 
+                'SELECT products."name", products."gender", products."category", sizes."size", carts."cartId", carts."orderId", carts."sizeId", carts."quantity", carts."price", products."imageUrl" FROM carts JOIN orders ON carts."orderId" = orders."orderId" JOIN sizes ON carts."sizeId" = sizes."sizeId" JOIN products ON sizes."productId" = products."productId" WHERE orders."userId" = $1 AND orders."orderStatus" = $2', 
                 [req.session.userId, 0]
             );
-            const results = response[0];
+            const results = response.rows;
             res.status(200).send(results);
         }
         catch(error){
@@ -28,11 +28,11 @@ router.get('/:orderId', async (req, res) => {
     if(req.session.role === "admin"){
         try{
             const response = await db.query(
-                'SELECT products.name, products.gender, products.category, sizes.size, carts.cartId, carts.orderId, carts.sizeId, carts.quantity, carts.price, products.imageUrl FROM carts JOIN orders ON carts.orderId = orders.orderId JOIN sizes ON carts.sizeId = sizes.sizeId JOIN products ON sizes.productId = products.productId WHERE carts.orderId = ?', 
+                'SELECT products."name", products."gender", products."category", sizes."size", carts."cartId", carts."orderId", carts."sizeId", carts."quantity", carts."price", products."imageUrl" FROM carts JOIN orders ON carts."orderId" = orders."orderId" JOIN sizes ON carts."sizeId" = sizes."sizeId" JOIN products ON sizes."productId" = products."productId" WHERE carts."orderId" = $1', 
                 [orderId]
             );
-            const results = response[0];
-            if(results.length > 0){
+            const results = response.rows;
+            if(response.rows.length > 0){
                 console.log(results);
                 res.status(200).send(results);
             }
@@ -48,11 +48,11 @@ router.get('/:orderId', async (req, res) => {
     else if(req.session.role === "client"){
         try {
             const response = await db.query(
-                'SELECT products.name, products.gender, products.category, sizes.size, carts.cartId, carts.orderId, carts.sizeId, carts.quantity, carts.price, products.imageUrl FROM carts JOIN orders ON carts.orderId = orders.orderId JOIN sizes ON carts.sizeId = sizes.sizeId JOIN products ON sizes.productId = products.productId WHERE carts.orderId = ? AND orders.orderId = ?', 
+                'SELECT products."name", products."gender", products."category", sizes."size", carts."cartId", carts."orderId", carts."sizeId", carts."quantity", carts."price", products."imageUrl" FROM carts JOIN orders ON carts."orderId" = orders."orderId" JOIN sizes ON carts."sizeId" = sizes."sizeId" JOIN products ON sizes."productId" = products."productId" WHERE carts."orderId" = $1 AND orders."orderId" = $2', 
                 [orderId, req.session.userId]
             );
-            const results = response[0];
-            if(results.length > 0){
+            const results = response.rows;
+            if(response.rows.length > 0){
                 console.log(results);
                 res.status(200).send(results);
             }
@@ -77,10 +77,10 @@ router.post('/', async (req, res) => {
         try {
 
             const getCheckStock = await db.query(
-                'SELECT stock FROM sizes WHERE productId = ? AND size = ?',
+                'SELECT "stock" FROM sizes WHERE "productId" = $1 AND "size" = $2',
                 [productId, size]
             );
-            const checkStock = getCheckStock[0].stock;
+            const checkStock = getCheckStock.rows[0].stock;
 
             if(checkStock <= 0){
                 res.status(409).send({message: "Empty Stock"});
@@ -88,47 +88,46 @@ router.post('/', async (req, res) => {
             }
 
             const response = await db.query(
-                'SELECT carts.cartId FROM carts JOIN orders ON carts.orderId = orders.orderId JOIN sizes ON carts.sizeId = sizes.sizeId WHERE sizes.productId = ? AND sizes.size = ? AND orders.userId = ? AND orders.orderStatus = ?', 
+                'SELECT carts."cartId" FROM carts JOIN orders ON carts."orderId" = orders."orderId" JOIN sizes ON carts."sizeId" = sizes."sizeId" WHERE sizes."productId" = $1 AND sizes."size" = $2 AND orders."userId" = $3 AND orders."orderStatus" = $4', 
                 [productId, size, req.session.userId, 0]
             );
-            const results = response[0];
 
-            if(results.length > 0){
+            if(response.rows.length > 0){
                 res.status(409).send({message: 'Product Already in Cart'});
                 return;
             }
             else{
                 const getOrderId = await db.query(
-                    'SELECT orderId FROM orders WHERE userId = ? AND orderStatus = ?',
+                    'SELECT "orderId" FROM orders WHERE "userId" = $1 AND "orderStatus" = $2',
                     [req.session.userId, 0]    
                 );
                 // console.log(getOrderId);
-                const orderId = getOrderId[0][0].orderId;
+                const orderId = getOrderId.rows[0].orderId;
                 // console.log(orderId);
                 
                 const getPrice = await db.query(
-                    'SELECT price FROM products WHERE productId = ?',
+                    'SELECT "price" FROM products WHERE "productId" = $1',
                     [productId]
                 );
                 // console.log(getPrice);
-                const price = getPrice[0][0].price;
+                const price = getPrice.rows[0].price;
                 // console.log(price);
 
                 const getSizeId = await db.query(
-                    'SELECT sizeId FROM sizes WHERE productId = ? AND size = ?',
+                    'SELECT "sizeId" FROM sizes WHERE "productId" = $1 AND "size" = $2',
                     [productId, size]
                 );
                 // console.log(getSizeId);
-                const sizeId = getSizeId[0][0].sizeId;
+                const sizeId = getSizeId.rows[0].sizeId;
                 // console.log(sizeId);
 
                 await db.query(
-                    'INSERT INTO carts(orderId, price, quantity, sizeId) VALUES (?, ?, ?, ?)',
+                    'INSERT INTO carts("orderId", "price", "quantity", "sizeId") VALUES ($1, $2, $3, $4)',
                     [orderId, price, 1, sizeId]
                 );
                 
                 await db.query(
-                    'UPDATE orders SET total = total + ? WHERE orderId = ?',
+                    'UPDATE orders SET "total" = "total" + $1 WHERE "orderId" = $2',
                     [price, orderId]
                 );
 
@@ -152,10 +151,10 @@ router.put('/:cartId', async (req, res) => {
     if(req.session.role === "client"){
         try{
             const getCheckUser = await db.query(
-                'SELECT carts.cartId FROM carts JOIN orders ON carts.orderId = orders.orderId WHERE orders.userId = ? AND carts.cartId = ?',
+                'SELECT carts."cartId" FROM carts JOIN orders ON carts."orderId" = orders."orderId" WHERE orders."userId" = $1 AND carts."cartId" = $2',
                 [req.session.userId, cartId]
             );
-            const checkUser = getCheckUser[0].cartId;
+            const checkUser = getCheckUser.rows[0].cartId;
 
             if(!checkUser || checkUser.length <= 0 || checkUser === ""){
                 res.status(401).send({message: "Unauthorized Access"});
@@ -163,25 +162,25 @@ router.put('/:cartId', async (req, res) => {
             }
 
             const getOrderId = await db.query(
-                'SELECT orderId FROM orders WHERE userId = ? AND orderStatus = ?',
+                'SELECT "orderId" FROM orders WHERE "userId" = $1 AND "orderStatus" = $2',
                 [req.session.userId, 0]    
             );
-            const orderId = getOrderId[0].orderId;
+            const orderId = getOrderId.rows[0].orderId;
 
             const getOldQuantityAndPrice = await db.query(
-                'SElECT quantity, price FROM carts WHERE cartId = ?',
+                'SElECT "quantity", "price" FROM carts WHERE "cartId" = $1',
                 [cartId]
             );
-            const oldQuantity = getOldQuantityAndPrice[0].quantity;
-            const price = getOldQuantityAndPrice[0].price;
+            const oldQuantity = getOldQuantityAndPrice.rows[0].quantity;
+            const price = getOldQuantityAndPrice.rows[0].price;
             
             await db.query(
-                'UPDATE carts SET quantity = ? WHERE cartId = ?',
+                'UPDATE carts SET "quantity" = $1 WHERE "cartId" = $2',
                 [quantity, cartId],
             );
 
             await db.query(
-                'UPDATE orders SET total = total - ? + ? WHERE orderId = ?',
+                'UPDATE orders SET "total" = "total" - $1 + $2 WHERE "orderId" = $3',
                 [oldQuantity * price, quantity * price, orderId]
             );
         }
@@ -202,10 +201,10 @@ router.delete('/:cartId', async (req, res) => {
         try{
             
             const getCheckUser = await db.query(
-                'SELECT carts.cartId FROM carts JOIN orders ON carts.orderId = orders.orderId WHERE orders.userId = ? AND carts.cartId = ?',
+                'SELECT carts."cartId" FROM carts JOIN orders ON carts."orderId" = orders."orderId" WHERE orders."userId" = $1 AND carts."cartId" = $2',
                 [req.session.userId, cartId]
             );
-            const checkUser = getCheckUser[0].cartId;
+            const checkUser = getCheckUser.rows[0].cartId;
 
             if(!checkUser || checkUser.length <= 0 || checkUser === ""){
                 res.status(401).send({message: "Unathorized Access"});
@@ -213,25 +212,25 @@ router.delete('/:cartId', async (req, res) => {
             }
 
             const getOrderId = await db.query(
-                'SELECT orderId FROM orders WHERE userId = ? AND orderStatus = ?',
+                'SELECT "orderId" FROM orders WHERE "userId" = $1 AND "orderStatus" = $2',
                 [req.session.userId, 0]    
             );
-            const orderId = getOrderId[0].orderId;
+            const orderId = getOrderId.rows[0].orderId;
             
             const getOldQuantityAndPrice = await db.query(
-                'SElECT quantity, price FROM carts WHERE cartId = ?',
+                'SElECT "quantity", "price" FROM carts WHERE "cartId" = $1',
                 [cartId]
             );
-            const oldQuantity = getOldQuantityAndPrice[0].quantity;
-            const price = getOldQuantityAndPrice[0].price;
+            const oldQuantity = getOldQuantityAndPrice.rows[0].quantity;
+            const price = getOldQuantityAndPrice.rows[0].price;
 
             await db.query(
-                'DELETE FROM carts WHERE cartId = ?',
+                'DELETE FROM carts WHERE "cartId" = $1',
                 [cartId]
             );
 
             await db.query(
-                'UPDATE orders SET total = total - ? WHERE orderId = ?',
+                'UPDATE orders SET "total" = "total" - $1 WHERE "orderId" = $2',
                 [oldQuantity * price, orderId]
             );
         }

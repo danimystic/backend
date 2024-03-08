@@ -32,16 +32,17 @@ router.post('/', parser.single('image'), async (req, res) => {
     
     if(req.session.role === "admin"){
         try{
-            const response = await db.query('INSERT INTO products(name, category, description, gender, price, imageUrl) VALUES(?, ?, ?, ?, ?, ?)', [name, category, description, gender, price, imageUrl]);
+            const response = await db.query(
+                'INSERT INTO products("name", "category", "description", "gender", "price", "imageUrl") VALUES($1, $2, $3, $4, $5, $6) RETURNING "productId"', 
+                [name, category, description, gender, price, imageUrl]
+            );
 
-            const data = response[0];
-
-            const productId = data.insertId;
+            const productId = response.rows[0].productId;
 
             const parsedSizes = JSON.parse(sizes);
             for(const size in parsedSizes){
                 const stock = parsedSizes[size];
-                await db.query('INSERT INTO sizes(productId, size, stock) VALUES(?, ?, ?)', [productId, size, stock]);
+                await db.query('INSERT INTO sizes("productId", "size", "stock") VALUES($1, $2, $3)', [productId, size, stock]);
             }
             
             res.status(200).json({ message: 'Product Added Successfully' });

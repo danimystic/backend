@@ -8,24 +8,26 @@ const REDIRECT_URL = (process.env.NODE_ENV === 'development') ? process.env.FRON
 router.post('/', async (req, res) => {
     const {username, email, password} = req.body;
     try{
-        const checkUser = await db.query('SELECT username FROM users WHERE username = ? OR email = ?', [username, email]);
-        if(checkUser[0].length > 0){
+        const checkUser = await db.query('SELECT "username" FROM users WHERE "username" = $1 OR "email" = $2', [username, email]);
+        if(checkUser.rows.length > 0){
             res.status(400).send({ success: false, message: 'Username or email already exists' });
         }
         else{
             const hashedPassword = await bcrypt.hash(password, 10);
 
-            const response = await db.query('INSERT INTO users (username, email, password, isAdmin) VALUES (?, ?, ?, ?)', [username, email, hashedPassword, 0]);
+            const response = await db.query(
+                'INSERT INTO users ("username", "email", "password", "isAdmin") VALUES ($1, $2, $3, $4) RETURNING "userId"', 
+                [username, email, hashedPassword, 0]
+            );
 
-            const data = response[0];
-            const userId = data.insertId;
+            const userId = response.rows[0].userId;
 
             req.session.userId = userId;
             req.session.username = username;
             req.session.role = 'client';
             console.log(req.session);
 
-            await db.query('INSERT INTO orders (userId, total, orderStatus) VALUES (?, ?, ?)', [userId, 0, 0]);
+            await db.query('INSERT INTO orders ("userId", "total", "orderStatus") VALUES ($1, $2, $3)', [userId, 0, 0]);
             
             res.status(201).send({ success: true, message: 'User registered successfully', redirectTo: REDIRECT_URL });
         }

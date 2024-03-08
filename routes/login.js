@@ -10,10 +10,10 @@ router.post('/', async (req, res) => {
     const {email, password} = req.body;
 
     try{
-        const checkUser = await db.query('SELECT userId, password, username, isAdmin FROM users WHERE email = ?', [email]);
-        console.log(checkUser);
-        if(checkUser[0].length > 0){
-            const user = checkUser[0][0];
+        const checkUser = await db.query('SELECT "userId", "password", "username", "isAdmin" FROM users WHERE "email" = $1', [email]);
+        console.log(checkUser.rows);
+        if(checkUser.rows.length > 0){
+            const user = checkUser.rows[0];
             const checkPassword = await bcrypt.compare(password, user.password);
             if(checkPassword){
                 req.session.userId = user.userId;

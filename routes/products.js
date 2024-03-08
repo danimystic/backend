@@ -5,7 +5,7 @@ const db = require('../config/db');
 router.get('/', async (req, res) => {
     try {
         const data = await db.query('SELECT * FROM products');
-        res.status(200).send(data[0]);
+        res.status(200).send(data.rows);
     } catch (error) {
         console.error(error);
         res.status(500).send({message: "Internal Error"});
@@ -15,8 +15,8 @@ router.get('/', async (req, res) => {
 router.get('/:productId', async (req, res) => {
     const productId = req.params.productId;
     try{
-        const data = await db.query('SELECT * FROM products WHERE productId = ?', [productId]);
-        res.status(200).send(data[0]);
+        const data = await db.query('SELECT * FROM products WHERE "productId" = $1', [productId]);
+        res.status(200).send(data.rows[0]);
     }
     catch(error){
         console.error(error);
@@ -27,8 +27,8 @@ router.get('/:productId', async (req, res) => {
 router.get('/stock/:productId', async (req, res) => {
     const productId = req.params.productId;
     try {
-        const data = await db.query('SELECT size, stock FROM sizes WHERE productId = ?', [productId]);
-        res.status(200).send(data[0]);
+        const data = await db.query('SELECT "size", "stock" FROM sizes WHERE "productId" = $1', [productId]);
+        res.status(200).send(data.rows);
     } 
     catch (error) {
         console.error(error);
@@ -45,7 +45,7 @@ router.put('/stock/:productId', async (req, res) => {
         try {
             for(const size in sizes){
                 const stock = sizes[size];
-                await db.query('UPDATE sizes SET stock = ? WHERE productId = ? AND size = ?', [stock, productId, size]);
+                await db.query('UPDATE sizes SET "stock" = $1 WHERE "productId" = $2 AND "size" = $3', [stock, productId, size]);
             }
             res.status(200).send({message: "Stock Modified"});
         }
