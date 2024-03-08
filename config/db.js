@@ -2,6 +2,10 @@
 const { Pool } = require('pg');
 const fs = require('fs');
 
+const path = require('path');
+const filePath = path.join(__dirname, 'config', 'prod-ca-2021.crt');
+const credential = fs.readFileSync(filePath);
+
 // const pool = mysql.createPool({
 //   host: 'localhost',
 //   port: 3307,
@@ -19,7 +23,7 @@ const db = new Pool({
   connectionString: 'postgres://postgres.gpmavoucjsjnkjjswnee:SMHCUwmSwjo590Rs@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres',
   ssl: { 
     rejectUnauthorized: true,
-    ca: fs.readFileSync('./config/prod-ca-2021.crt')
+    ca: credential
   }
 });
 
