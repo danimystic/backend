@@ -11,5 +11,6 @@
       "src": "/(.*)",
       "dest": "app.js"
     }
-  ]
+  ],
+  "files": ["config/prod-ca-2021.crt"]
 }
