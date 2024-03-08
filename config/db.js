@@ -19,7 +19,7 @@ const db = new Pool({
   connectionString: 'postgres://postgres.gpmavoucjsjnkjjswnee:SMHCUwmSwjo590Rs@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres',
   ssl: { 
     rejectUnauthorized: true,
-    ca: fs.readFileSync('config/prod-ca-2021.crt')
+    ca: fs.readFileSync('./config/prod-ca-2021.crt')
   }
 });
 
