@@ -2,8 +2,6 @@
 const { Pool } = require('pg');
 const fs = require('fs');
 
-const cert = Buffer.from(process.env.PLAIN_TEXT_CERTIFICATE, 'base64').toString();
-
 // const pool = mysql.createPool({
 //   host: 'localhost',
 //   port: 3307,
