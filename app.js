@@ -11,6 +11,27 @@ require('dotenv').config({
   path: `.env.${process.env.NODE_ENV || 'development'}`,
 });
 
+const redis = require('redis');
+const RedisStore = require('connect-redis').default;
+
+const redisClient = redis.createClient({
+    password: '6SPAFcK7G1jO6wsdGL7K16JzJmOrYFHk',
+    socket: {
+        host: process.env.REDIS_URL,
+        port: 17556
+    }
+});
+
+redisClient.connect().then(() => {
+  console.log('Connected to Redis');
+}).catch((err) => {
+  console.log(err.message);
+});
+
+redisClient.on('connect', () => {
+  console.log('Connected to Redis Cloud');
+})
+
 const home = require('./routes/home');
 const loginRouter = require('./routes/login');
 const signupRouter = require('./routes/signup');
@@ -32,13 +53,14 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(cors({
-  origin: [BACKEND_URL, FRONTEND_URL],
+  origin: [BACKEND_URL, FRONTEND_URL, process.env.REDIS_URL],
   methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   credentials: true,
   optionsSuccessStatus: 204,
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 app.use(session({
+  store: new RedisStore({ client: redisClient }),
   secret: 'secret',
   saveUninitialized: true,
   resave: false,
@@ -72,7 +94,7 @@ app.use(function(err, req, res, next) {
 
   // render the error page
   res.status(err.status || 500);
-  res.render('error');
+  res.send("Error: " + err.message);
 });
 
 module.exports = app;
