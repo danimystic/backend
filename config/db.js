@@ -2,6 +2,8 @@
 const { Pool } = require('pg');
 const fs = require('fs');
 
+const cert = Buffer.from(process.env.PLAIN_TEXT_CERTIFICATE, 'base64').toString();
+
 // const pool = mysql.createPool({
 //   host: 'localhost',
 //   port: 3307,
@@ -17,10 +19,6 @@ const fs = require('fs');
 
 const db = new Pool({
   connectionString: 'postgres://postgres.gpmavoucjsjnkjjswnee:SMHCUwmSwjo590Rs@aws-0-ap-southeast-1.pooler.supabase.com:5432/postgres',
-  ssl: { 
-    rejectUnauthorized: true,
-    ca: fs.readFileSync('./config/prod-ca-2021.crt')
-  }
 });
 
 module.exports = db;
