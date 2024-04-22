@@ -59,6 +59,7 @@ app.use(cors({
   optionsSuccessStatus: 204,
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
+app.set("trust proxy", 1);
 app.use(session({
   store: new RedisStore({ client: redisClient }),
   secret: 'secret',
@@ -66,7 +67,8 @@ app.use(session({
   resave: false,
   cookie: {
     secure: (process.env.NODE_ENV === 'production') ? true : false,
-    maxAge: 1000 * 60 * 60 * 24 * 7
+    maxAge: 1000 * 60 * 60 * 24 * 7,
+    sameSite: 'none'
   }
 }));
 
