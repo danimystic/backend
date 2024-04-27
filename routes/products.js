@@ -56,4 +56,17 @@ router.put('/stock/:productId', async (req, res) => {
     }
 });
 
+router.get('/stock/:productId/:sizeId', async (req, res) => {
+    const sizeId = req.params.sizeId;
+
+    try{
+        const data = await db.query('SELECT stock FROM sizes WHERE "sizeId" = $1', [sizeId]);
+        res.status(200).send(data.rows[0]);
+    }
+    catch(error){
+        console.error(error);
+        res.status(500).send({message: "Internal Error"});
+    }    
+});
+
 module.exports = router;

@@ -183,6 +183,8 @@ router.put('/:cartId', async (req, res) => {
                 'UPDATE orders SET "total" = "total" - $1 + $2 WHERE "orderId" = $3',
                 [oldQuantity * price, quantity * price, orderId]
             );
+
+            res.status(200).send({message: "Updating Cart Success"});
         }
         catch(error){
             console.error(error);
@@ -233,6 +235,8 @@ router.delete('/:cartId', async (req, res) => {
                 'UPDATE orders SET "total" = "total" - $1 WHERE "orderId" = $2',
                 [oldQuantity * price, orderId]
             );
+
+            res.status(200).send({message: "Deleting Cart Success"});
         }
         catch(error){
             console.error(error);
