@@ -28,7 +28,7 @@ router.get('/all', async (req, res) => {
         try {
             const response = await db.query(
                 'SELECT * FROM orders WHERE "orderStatus" <> $1',
-                [req.session.userId, 0]
+                [0]
             );
             const data = response.rows;
             res.status(200).send(data);
